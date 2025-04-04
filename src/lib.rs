@@ -34,16 +34,10 @@ mod alpha_gen {
                 let fbs_size = full_blocks * siz;
                 let divisible = fbs_size == places;
 
-                // rework so plc is boosted with siz
-                let plc = match divisible {
-                    | true => places - siz,
-                    | false => match full_blocks {
-                        | 0 => 0,
-                        | _ => fbs_size,
-                    },
-                };
-
-                plc
+                match divisible {
+                    | true => fbs_size,
+                    | false => fbs_size + siz,
+                }
             };
 
             Self { num, siz, plc }
@@ -56,17 +50,13 @@ mod alpha_gen {
                 return 0;
             }
 
-            let plc = self.plc;
-            let siz = self.siz;
+            let plc = self.plc - self.siz;
 
             let pow = 10u32.pow(plc);
             let alpha = num / pow;
 
             self.num = num % pow;
-
-            if plc != 0 {
-                self.plc = plc - siz;
-            }
+            self.plc = plc;
 
             alpha
         }
