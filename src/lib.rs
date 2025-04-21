@@ -1,9 +1,161 @@
-#![allow(dead_code)]
+// Variables and their meaning
+// --------------------------------------------------
+// B  — base of number system, e.g. binary or ternary
+// n  — root/radix degree
+// x  — radicand
+// y  — root/radix
+// r  — remainder
+// α  — next n places of radicand
+// β  — root next number
+// x' — new x for next iteration
+// y' — new y for next iteration
+// r' — new r for next iteration
 
 use alpha_gen::AlphaGenerator;
 
-// think of fractional part of root
-pub fn root(nth: u16, rad: u32) {}
+/// `nth` – radix degree
+/// `rad` – radicand
+pub fn root(nth: u8, rad: u32) -> Option<u32> {
+    if nth == 0 {
+        return None;
+    }
+
+    let nth = nth as u32;
+
+    // root/radix
+    let mut rax = 0;
+    // remainder
+    let mut rem = 0;
+
+    // decadic base powered by degree
+    // base degree power
+    let bdp = 10u32.pow(nth);
+
+    let mut agen = AlphaGenerator::new(rad, nth);
+
+    // integer root, otherwise some kind (degree) of precision must be used
+    loop {
+        let alpha = agen.next();
+        // operatives
+        let (orax, orem) = step::next(rax, rem, bdp, alpha, nth);
+
+        let orax_pow = orax.pow(nth);
+
+        if orax_pow > rad {
+            break;
+        }
+
+        rax = orax;
+
+        if orax_pow == rad {
+            break;
+        }
+
+        rem = orem;
+    }
+
+    Some(rax)
+}
+
+#[cfg(test)]
+mod tests_of_units {
+    use crate::root;
+
+    #[test]
+    fn basic_test() {
+        assert_eq!(Some(2), root(3, 8));
+    }
+
+    #[test]
+    fn zero_root_test() {
+        assert_eq!(None, root(0, u32::MAX));
+    }
+
+    #[test]
+    fn sqrt_basic_test() {
+        #[rustfmt::skip]
+        let vals = [
+            (0,0),
+            (1,1), (2,1), (3,1),
+            (4,2), (5,2), (6,2), (7,2), (8,2),
+            (9, 3)];
+
+        for v in vals {
+            assert_eq!(Some(v.1), root(2, v.0), "exp: {}, inp: {}", v.1, v.0);
+        }
+    }
+
+    #[test]
+    fn cbrt_basic_test() {
+        #[rustfmt::skip]
+        let vals = [
+            (0,0),
+            (1,1), (2,1), (3,1), (4,1), (5,1), (6,1), (7,1), 
+            (8,2), (9, 2),
+            (27, 3)];
+
+        for v in vals {
+            assert_eq!(Some(v.1), root(3, v.0), "exp: {}, inp: {}", v.1, v.0);
+        }
+    }
+
+    #[test]
+    fn integer_root_test() {
+        #[rustfmt::skip]
+        let vals = [
+            (4, 4, 256),
+            (7, 5, 16807),
+            (4, 14, 268435456),
+            (2, 30, 1073741824),
+            (100, 4, 100000000),
+            (217, 3, 10218313),
+            (5560, 2, 30913600),
+            (1222, 3, 1824793048),
+            (177, 4, 981506241),
+            (793, 3, 498677257),
+            (313, 3, 30664297)
+        ];
+        for v in vals {
+            assert_eq!(
+                Some(v.0),
+                root(v.1, v.2),
+                "exp: {}, deg: {}, inp: {}",
+                v.0,
+                v.1,
+                v.2
+            );
+        }
+    }
+
+    #[test]
+    fn rounded_root_test() {
+        #[rustfmt::skip]
+        let vals = [
+            (17, 2, 312),       // ≈ 17.7
+            (9, 4, 9999),       // ≈ 9.9998
+            (9, 3, 999),        // ≈ 9.997
+            (9, 2, 99),         // ≈ 9.95
+            (99, 2, 9999),      // ≈ 99.995
+            (21, 3, 9999),      // ≈ 21.5            
+            (20, 4, 173479),    // ≈ 20.41
+            (2, 17, 16777215),  // ≈ 2.661
+            (3, 13, 33554431),  // ≈ 3.79
+            // ill-fated overflows
+            // (2, 31, 2147483648), 
+            // (4, 15, 1073741824),
+        ];
+        for v in vals {
+            assert_eq!(
+                Some(v.0),
+                root(v.1, v.2),
+                "exp: {}, deg: {}, inp: {}",
+                v.0,
+                v.1,
+                v.2
+            );
+        }
+    }
+}
 
 mod alpha_gen {
     // Let α be the next n digits of the radicand.

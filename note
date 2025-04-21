@@ -1,0 +1,6 @@
+- implement best guess
+
+```
+// (r +α) ÷nBⁿ⁻¹yⁿ⁻¹
+pub fn guess(rem: u32, r_pow_lo: u32, alpha: u32, nth: u32) {}
+```
