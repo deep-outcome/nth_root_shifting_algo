@@ -139,15 +139,23 @@ mod tests_of_units {
     fn rounded_root_test() {
         #[rustfmt::skip]
         let vals = [
-            (17, 2, 312),       // ≈ 17.7
-            (9, 4, 9999),       // ≈ 9.9998
-            (9, 3, 999),        // ≈ 9.997
-            (9, 2, 99),         // ≈ 9.95
-            (99, 2, 9999),      // ≈ 99.995
-            (21, 3, 9999),      // ≈ 21.5            
-            (20, 4, 173479),    // ≈ 20.41
-            (2, 17, 16777215),  // ≈ 2.661
-            (3, 13, 33554431),  // ≈ 3.79
+            (17, 2, 312),               // ≈ 17.7
+            (9, 4, 9999),               // ≈ 9.9998
+            (9, 3, 999),                // ≈ 9.997
+            (9, 2, 99),                 // ≈ 9.95
+            (99, 2, 9999),              // ≈ 99.995
+            (21, 3, 9999),              // ≈ 21.5            
+            (20, 4, 173479),            // ≈ 20.41
+            
+            // works only in release
+            (2, 17, 16777215),          // ≈ 2.661            
+            (3, 13, 33554431),          // ≈ 3.79            
+            (31629, 2, 1_000_400_400),  // ≈ 31629.11
+            (45, 5, 200_300_010),       // ≈ 45.7            
+            
+            // bug: tests never end
+            // (5, 12, 900_900_009),    // ≈ 5.575
+            // (2, 26, 90_900_009),     // ≈ 2.02
             // ill-fated overflows
             // (2, 31, 2147483648), 
             // (4, 15, 1073741824),
@@ -162,6 +170,55 @@ mod tests_of_units {
                 v.2
             );
         }
+    }
+}
+
+mod step {
+
+    // β is largest number complying formula
+    // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
+    pub const fn next(mut rax: u32, rem: u32, bdp: u32, alpha: u32, degree: u32) -> (u32, u32) {
+        // By, widen rax
+        let worax = rax * 10;
+
+        // Bⁿyⁿ, subtrahend
+        let sub = bdp * (rax.pow(degree));
+        // Bⁿr +α, limit
+        let lim = bdp * rem + alpha;
+
+        // y' =By +β, β =0
+        rax = worax;
+
+        // (By +β)ⁿ -Bⁿyⁿ
+        // β =0 =>(By)ⁿ -Bⁿyⁿ =0
+        let mut max = 0;
+
+        // seeking largest beta that
+        // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
+        let mut beta = 1;
+        loop {
+            // o stands for operative
+
+            // y' =By +β
+            let orax = worax + beta;
+            // (By +β)ⁿ
+            let orax_deg_pow = orax.pow(degree);
+            // (By +β)ⁿ -Bⁿyⁿ
+            let omax = orax_deg_pow - sub;
+
+            // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
+            if omax > lim {
+                // too much
+                break;
+            }
+
+            rax = orax;
+            max = omax;
+            beta += 1;
+        }
+
+        // r' =Bⁿr +α -((By +β)ⁿ -Bⁿyⁿ)
+        (rax, lim - max)
     }
 }
 
