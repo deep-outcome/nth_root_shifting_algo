@@ -5,5 +5,4 @@
 pub fn guess(rem: u32, r_pow_lo: u32, alpha: u32, nth: u32) {}
 ```
 
-- fix never-ending tests
 - create step tests
