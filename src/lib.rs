@@ -222,7 +222,7 @@ mod step {
                 // Bⁿr +α ÷(nBⁿ⁻¹ ·yⁿ⁻¹)
                 g = lim / div;
             }
-            
+
             if g > 0 {
                 (Some(g), g)
             } else {
@@ -232,7 +232,7 @@ mod step {
 
         // seeking largest beta that
         // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
-        loop {
+        'incr: loop {
             // o stands for operative
 
             // y' =By +β
@@ -246,18 +246,56 @@ mod step {
             if omax > lim {
                 if let Some(g) = guess {
                     if g == beta {
-                        guess = None;
-                        beta = 1;
-                        continue;
+                        break 'incr;
                     }
+
+                    guess = None;
                 }
 
-                break;
+                break 'incr;
             }
 
             rax = orax;
             max = omax;
+
+            // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
+            if omax == lim {
+                if guess.is_some() {
+                    guess = None;
+                }
+                break 'incr;
+            }
+
             beta += 1;
+        }
+
+        if guess.is_none() {
+            // r' =Bⁿr +α -((By +β)ⁿ -Bⁿyⁿ)
+            return (rax, lim - max);
+        }
+
+        // seeking largest beta that
+        // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
+        beta -= 1;
+        'decr: loop {
+            // o stands for operative
+
+            // y' =By +β
+            let orax = wrax + beta;
+            // (By +β)ⁿ
+            let orax_deg_pow = orax.pow(degree);
+            // (By +β)ⁿ -Bⁿyⁿ
+            let omax = orax_deg_pow - sub;
+
+            // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
+            if omax <= lim {
+                rax = orax;
+                max = omax;
+
+                break 'decr;
+            }
+
+            beta -= 1;
         }
 
         // r' =Bⁿr +α -((By +β)ⁿ -Bⁿyⁿ)
