@@ -1,4 +1,5 @@
 - implement best guess
+- check with decrementing loop when best guess fails
 
 ```
 // (r +α) ÷nBⁿ⁻¹yⁿ⁻¹

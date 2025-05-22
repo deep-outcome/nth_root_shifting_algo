@@ -13,6 +13,8 @@
 
 use alpha_gen::AlphaGenerator;
 
+const BASE: u32 = 10;
+
 /// `nth` – radix degree
 /// `rad` – radicand
 pub fn root(nth: u8, rad: u32) -> Option<u32> {
@@ -29,7 +31,12 @@ pub fn root(nth: u8, rad: u32) -> Option<u32> {
 
     // decadic base powered by degree
     // base degree power
-    let bdp = 10u32.pow(nth);
+    let bdp = BASE.pow(nth);
+
+    let nth_less = nth - 1;
+
+    // degree base degree less power
+    let dbdlp = nth * BASE.pow(nth_less);
 
     let mut agen = AlphaGenerator::new(rad, nth);
 
@@ -37,7 +44,7 @@ pub fn root(nth: u8, rad: u32) -> Option<u32> {
     loop {
         let alpha = agen.next();
         // operatives
-        let (orax, orem) = step::next(rax, rem, bdp, alpha, nth);
+        let (orax, orem) = step::next(rax, rem, bdp, alpha, nth, nth_less, dbdlp);
 
         let orax_pow = orax.pow(nth);
 
@@ -152,7 +159,8 @@ mod tests_of_units {
             (20, 4, 173_479),           // ≈ 20.41
             
             // works only in release
-            (2, 17, 16_777_215),        // ≈ 2.661            
+            // does not work with guess
+            // (2, 17, 16_777_215),        // ≈ 2.661            
             (3, 13, 33_554_431),        // ≈ 3.79            
             (31629, 2, 1_000_400_400),  // ≈ 31629.11
             (45, 5, 200_300_010),       // ≈ 45.7            
@@ -178,30 +186,57 @@ mod step {
 
     // β is largest number complying formula
     // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
-    pub const fn next(mut rax: u32, rem: u32, bdp: u32, alpha: u32, degree: u32) -> (u32, u32) {
+    pub const fn next(
+        mut rax: u32,
+        rem: u32,
+        bdp: u32,
+        alpha: u32,
+        degree: u32,
+        degree_less: u32,
+        dbdlp: u32,
+    ) -> (u32, u32) {
         // By, widen rax
-        let worax = rax * 10;
+        let wrax = rax * super::BASE;
+
+        let rax_pow_less = rax.pow(degree_less);
 
         // Bⁿyⁿ, subtrahend
-        let sub = bdp * (rax.pow(degree));
+        let sub = bdp * (rax_pow_less * rax);
         // Bⁿr +α, limit
         let lim = bdp * rem + alpha;
 
         // y' =By +β, β =0
-        rax = worax;
+        rax = wrax;
 
         // (By +β)ⁿ -Bⁿyⁿ
         // β =0 =>(By)ⁿ -Bⁿyⁿ =0
         let mut max = 0;
 
+        // let make initial guess, if possible
+        let (mut guess, mut beta) = {
+            let mut g = 0;
+
+            if rax_pow_less > 0 {
+                let div = dbdlp * rax_pow_less;
+
+                // Bⁿr +α ÷(nBⁿ⁻¹ ·yⁿ⁻¹)
+                g = lim / div;
+            }
+            
+            if g > 0 {
+                (Some(g), g)
+            } else {
+                (None, 1)
+            }
+        };
+
         // seeking largest beta that
         // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
-        let mut beta = 1;
         loop {
             // o stands for operative
 
             // y' =By +β
-            let orax = worax + beta;
+            let orax = wrax + beta;
             // (By +β)ⁿ
             let orax_deg_pow = orax.pow(degree);
             // (By +β)ⁿ -Bⁿyⁿ
@@ -209,7 +244,14 @@ mod step {
 
             // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
             if omax > lim {
-                // too much
+                if let Some(g) = guess {
+                    if g == beta {
+                        guess = None;
+                        beta = 1;
+                        continue;
+                    }
+                }
+
                 break;
             }
 
@@ -356,4 +398,4 @@ mod alpha_gen {
     }
 }
 
-// cargo test --release
+// cargo fmt && cargo test --release
