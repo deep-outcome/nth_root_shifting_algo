@@ -1,102 +1,104 @@
-// Variables and their meaning
-// --------------------------------------------------
-// B  — base of number system, e.g. binary or ternary
-// n  — root/radix degree
-// x  — radicand
-// y  — root/radix
-// r  — remainder
-// α  — next n places of radicand
-// β  — root next number
-// y' — new y for next iteration
-// r' — new r for next iteration
-
-use alpha_gen::AlphaGenerator;
-
 const BASE: u32 = 10;
 
-/// `nth` – radix degree
-/// `rad` – radicand
-// n, x
-pub fn root(nth: u8, rad: u32) -> Option<u32> {
-    if nth == 0 {
-        return None;
-    }
+pub mod nth_root {
 
-    let nth = nth as u32;
+    // Variables and their meaning
+    // --------------------------------------------------
+    // B  — base of number system, e.g. binary or ternary
+    // n  — root/radix degree
+    // x  — radicand
+    // y  — root/radix
+    // r  — remainder
+    // α  — next n places of radicand
+    // β  — root next number
+    // y' — new y for next iteration
+    // r' — new r for next iteration
 
-    // root/radix
-    // y
-    let mut rax = 0;
-    // remainder
-    // r
-    let mut rem = 0;
+    use super::alpha_gen::AlphaGenerator;
 
-    // decadic base powered by degree
-    // base degree power
-    // Bⁿ
-    let bdp = BASE.pow(nth);
-
-    // n -1
-    let nth_less = nth - 1;
-
-    // degree base degree less power
-    // nBⁿ⁻¹
-    let dbdlp = nth * BASE.pow(nth_less);
-
-    let mut agen = AlphaGenerator::new(rad, nth);
-
-    // integer root, otherwise some kind (degree) of precision must be used
-    loop {
-        // α
-        let alpha = agen.next();
-        // operatives
-        // y', r'
-        let (orax, orem) = step::next(rax, rem, bdp, alpha, nth, nth_less, dbdlp);
-
-        let orax_pow = orax.pow(nth);
-
-        if orax_pow > rad {
-            break;
+    /// `nth` – radix degree
+    /// `rad` – radicand
+    // n, x
+    pub fn root(nth: u8, rad: u32) -> Option<u32> {
+        if nth == 0 {
+            return None;
         }
 
-        rax = orax;
+        let nth = nth as u32;
 
-        if orax_pow == rad {
-            break;
+        // root/radix
+        // y
+        let mut rax = 0;
+        // remainder
+        // r
+        let mut rem = 0;
+
+        // decadic base powered by degree
+        // base degree power
+        // Bⁿ
+        let bdp = super::BASE.pow(nth);
+
+        // n -1
+        let nth_less = nth - 1;
+
+        // degree base degree less power
+        // nBⁿ⁻¹
+        let dbdlp = nth * super::BASE.pow(nth_less);
+
+        let mut agen = AlphaGenerator::new(rad, nth);
+
+        // integer root, otherwise some kind (degree) of precision must be used
+        loop {
+            // α
+            let alpha = agen.next();
+            // operatives
+            // y', r'
+            let (orax, orem) = super::step::next(rax, rem, bdp, alpha, nth, nth_less, dbdlp);
+
+            let orax_pow = orax.pow(nth);
+
+            if orax_pow > rad {
+                break;
+            }
+
+            rax = orax;
+
+            if orax_pow == rad {
+                break;
+            }
+
+            rem = orem;
         }
 
-        rem = orem;
+        Some(rax)
     }
 
-    Some(rax)
-}
+    #[cfg(test)]
+    mod tests_of_units {
+        use super::root;
 
-#[cfg(test)]
-mod tests_of_units {
-    use crate::root;
-
-    #[test]
-    fn basic_test() {
-        assert_eq!(Some(2), root(3, 8));
-    }
-
-    #[test]
-    fn zero_root_test() {
-        assert_eq!(None, root(0, u32::MAX));
-    }
-
-    #[test]
-    fn first_root_test() {
-        let vals = [0, 1, 2, 3, 10, 100, 999, 1_000_000, 9_999_999];
-
-        for &v in vals.iter() {
-            assert_eq!(Some(v), root(1, v), "val: {v}");
+        #[test]
+        fn basic_test() {
+            assert_eq!(Some(2), root(3, 8));
         }
-    }
 
-    #[test]
-    fn sqrt_basic_test() {
-        #[rustfmt::skip]
+        #[test]
+        fn zero_root_test() {
+            assert_eq!(None, root(0, u32::MAX));
+        }
+
+        #[test]
+        fn first_root_test() {
+            let vals = [0, 1, 2, 3, 10, 100, 999, 1_000_000, 9_999_999];
+
+            for &v in vals.iter() {
+                assert_eq!(Some(v), root(1, v), "val: {v}");
+            }
+        }
+
+        #[test]
+        fn sqrt_basic_test() {
+            #[rustfmt::skip]
         let vals = [
             (0, [0].as_slice()),
             (1, [1,3].as_slice()),
@@ -105,16 +107,16 @@ mod tests_of_units {
             (4, [16,24].as_slice()),
             (5, [25,35].as_slice())];
 
-        for v in vals.iter() {
-            for &n in v.1 {
-                assert_eq!(Some(v.0), root(2, n), "exp: {}, inp: {}", v.0, n);
+            for v in vals.iter() {
+                for &n in v.1 {
+                    assert_eq!(Some(v.0), root(2, n), "exp: {}, inp: {}", v.0, n);
+                }
             }
         }
-    }
 
-    #[test]
-    fn cbrt_basic_test() {
-        #[rustfmt::skip]
+        #[test]
+        fn cbrt_basic_test() {
+            #[rustfmt::skip]
         let vals = [
             (0,[0].as_slice()),
             (1,[1,7].as_slice()), 
@@ -123,16 +125,16 @@ mod tests_of_units {
             (4,[64,124].as_slice()),
             (5,[125,215].as_slice())];
 
-        for v in vals.iter() {
-            for &n in v.1 {
-                assert_eq!(Some(v.0), root(3, n), "exp: {}, inp: {}", v.0, n);
+            for v in vals.iter() {
+                for &n in v.1 {
+                    assert_eq!(Some(v.0), root(3, n), "exp: {}, inp: {}", v.0, n);
+                }
             }
         }
-    }
 
-    #[test]
-    fn integer_root_test() {
-        #[rustfmt::skip]
+        #[test]
+        fn integer_root_test() {
+            #[rustfmt::skip]
         let vals = [
             (4, 4, 256),
             (7, 5, 16_807),
@@ -150,21 +152,21 @@ mod tests_of_units {
             // (2, 31, 2147483648), 
             // (4, 15, 1073741824),
         ];
-        for v in vals {
-            assert_eq!(
-                Some(v.0),
-                root(v.1, v.2),
-                "exp: {}, deg: {}, inp: {}",
-                v.0,
-                v.1,
-                v.2
-            );
+            for v in vals {
+                assert_eq!(
+                    Some(v.0),
+                    root(v.1, v.2),
+                    "exp: {}, deg: {}, inp: {}",
+                    v.0,
+                    v.1,
+                    v.2
+                );
+            }
         }
-    }
 
-    #[test]
-    fn rounded_root_test() {
-        #[rustfmt::skip]
+        #[test]
+        fn rounded_root_test() {
+            #[rustfmt::skip]
         let vals = [
             (17, 2, 312),               // ≈ 17.7
             (9, 4, 9999),               // ≈ 9.9998
@@ -185,15 +187,16 @@ mod tests_of_units {
             // (5, 12, 900_900_009),    // ≈ 5.575
             // (2, 26, 90_900_009),     // ≈ 2.02                                     
         ];
-        for v in vals {
-            assert_eq!(
-                Some(v.0),
-                root(v.1, v.2),
-                "exp: {}, deg: {}, inp: {}",
-                v.0,
-                v.1,
-                v.2
-            );
+            for v in vals {
+                assert_eq!(
+                    Some(v.0),
+                    root(v.1, v.2),
+                    "exp: {}, deg: {}, inp: {}",
+                    v.0,
+                    v.1,
+                    v.2
+                );
+            }
         }
     }
 }
@@ -644,7 +647,7 @@ mod alpha_gen {
 
     #[cfg(test)]
     mod tests_of_units {
-        use crate::AlphaGenerator;
+        use super::AlphaGenerator;
 
         #[test]
         fn basic_test() {
