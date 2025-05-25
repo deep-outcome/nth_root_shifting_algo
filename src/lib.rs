@@ -20,11 +20,31 @@ pub mod nth_root {
     /// `rad` – radicand
     // n, x
     pub fn root(nth: u8, rad: u32) -> Option<u32> {
+        root_actual(
+            nth as u32,
+            rad,
+            #[cfg(test)]
+            &mut 0,
+            #[cfg(test)]
+            &mut 0,
+            #[cfg(test)]
+            &mut 0,
+            #[cfg(test)]
+            &mut 0,
+        )
+    }
+
+    pub fn root_actual(
+        nth: u32,
+        rad: u32,
+        #[cfg(test)] bcode: &mut u32,
+        #[cfg(test)] bdp_out: &mut u32,
+        #[cfg(test)] nth_less_out: &mut u32,
+        #[cfg(test)] dbdlp_out: &mut u32,
+    ) -> Option<u32> {
         if nth == 0 {
             return None;
         }
-
-        let nth = nth as u32;
 
         // root/radix
         // y
@@ -45,6 +65,13 @@ pub mod nth_root {
         // nBⁿ⁻¹
         let dbdlp = nth * super::BASE.pow(nth_less);
 
+        #[cfg(test)]
+        {
+            *bdp_out = bdp;
+            *nth_less_out = nth_less;
+            *dbdlp_out = dbdlp;
+        }
+
         let mut agen = AlphaGenerator::new(rad, nth);
 
         // integer root, otherwise some kind (degree) of precision must be used
@@ -58,12 +85,22 @@ pub mod nth_root {
             let orax_pow = orax.pow(nth);
 
             if orax_pow > rad {
+                #[cfg(test)]
+                {
+                    *bcode = 1;
+                }
+
                 break;
             }
 
             rax = orax;
 
             if orax_pow == rad {
+                #[cfg(test)]
+                {
+                    *bcode = 2;
+                }
+
                 break;
             }
 
@@ -75,30 +112,33 @@ pub mod nth_root {
 
     #[cfg(test)]
     mod tests_of_units {
-        use super::root;
 
-        #[test]
-        fn basic_test() {
-            assert_eq!(Some(2), root(3, 8));
-        }
+        mod root {
 
-        #[test]
-        fn zero_root_test() {
-            assert_eq!(None, root(0, u32::MAX));
-        }
+            use super::super::root;
 
-        #[test]
-        fn first_root_test() {
-            let vals = [0, 1, 2, 3, 10, 100, 999, 1_000_000, 9_999_999];
-
-            for &v in vals.iter() {
-                assert_eq!(Some(v), root(1, v), "val: {v}");
+            #[test]
+            fn basic_test() {
+                assert_eq!(Some(2), root(3, 8));
             }
-        }
 
-        #[test]
-        fn sqrt_basic_test() {
-            #[rustfmt::skip]
+            #[test]
+            fn zero_root_test() {
+                assert_eq!(None, root(0, u32::MAX));
+            }
+
+            #[test]
+            fn first_root_test() {
+                let vals = [0, 1, 2, 3, 10, 100, 999, 1_000_000, 9_999_999];
+
+                for &v in vals.iter() {
+                    assert_eq!(Some(v), root(1, v), "val: {v}");
+                }
+            }
+
+            #[test]
+            fn sqrt_basic_test() {
+                #[rustfmt::skip]
         let vals = [
             (0, [0].as_slice()),
             (1, [1,3].as_slice()),
@@ -107,16 +147,16 @@ pub mod nth_root {
             (4, [16,24].as_slice()),
             (5, [25,35].as_slice())];
 
-            for v in vals.iter() {
-                for &n in v.1 {
-                    assert_eq!(Some(v.0), root(2, n), "exp: {}, inp: {}", v.0, n);
+                for v in vals.iter() {
+                    for &n in v.1 {
+                        assert_eq!(Some(v.0), root(2, n), "exp: {}, inp: {}", v.0, n);
+                    }
                 }
             }
-        }
 
-        #[test]
-        fn cbrt_basic_test() {
-            #[rustfmt::skip]
+            #[test]
+            fn cbrt_basic_test() {
+                #[rustfmt::skip]
         let vals = [
             (0,[0].as_slice()),
             (1,[1,7].as_slice()), 
@@ -125,16 +165,16 @@ pub mod nth_root {
             (4,[64,124].as_slice()),
             (5,[125,215].as_slice())];
 
-            for v in vals.iter() {
-                for &n in v.1 {
-                    assert_eq!(Some(v.0), root(3, n), "exp: {}, inp: {}", v.0, n);
+                for v in vals.iter() {
+                    for &n in v.1 {
+                        assert_eq!(Some(v.0), root(3, n), "exp: {}, inp: {}", v.0, n);
+                    }
                 }
             }
-        }
 
-        #[test]
-        fn integer_root_test() {
-            #[rustfmt::skip]
+            #[test]
+            fn integer_root_test() {
+                #[rustfmt::skip]
         let vals = [
             (4, 4, 256),
             (7, 5, 16_807),
@@ -152,21 +192,21 @@ pub mod nth_root {
             // (2, 31, 2147483648), 
             // (4, 15, 1073741824),
         ];
-            for v in vals {
-                assert_eq!(
-                    Some(v.0),
-                    root(v.1, v.2),
-                    "exp: {}, deg: {}, inp: {}",
-                    v.0,
-                    v.1,
-                    v.2
-                );
+                for v in vals {
+                    assert_eq!(
+                        Some(v.0),
+                        root(v.1, v.2),
+                        "exp: {}, deg: {}, inp: {}",
+                        v.0,
+                        v.1,
+                        v.2
+                    );
+                }
             }
-        }
 
-        #[test]
-        fn rounded_root_test() {
-            #[rustfmt::skip]
+            #[test]
+            fn rounded_root_test() {
+                #[rustfmt::skip]
         let vals = [
             (17, 2, 312),               // ≈ 17.7
             (9, 4, 9999),               // ≈ 9.9998
@@ -187,22 +227,68 @@ pub mod nth_root {
             // (5, 12, 900_900_009),    // ≈ 5.575
             // (2, 26, 90_900_009),     // ≈ 2.02                                     
         ];
-            for v in vals {
-                assert_eq!(
-                    Some(v.0),
-                    root(v.1, v.2),
-                    "exp: {}, deg: {}, inp: {}",
-                    v.0,
-                    v.1,
-                    v.2
-                );
+                for v in vals {
+                    assert_eq!(
+                        Some(v.0),
+                        root(v.1, v.2),
+                        "exp: {}, deg: {}, inp: {}",
+                        v.0,
+                        v.1,
+                        v.2
+                    );
+                }
+            }
+
+            #[test]
+            fn readme_test() {
+                assert_eq!(Some(3), root(13, 33_554_431));
+                assert_eq!(Some(5560), root(2, 30_913_600));
             }
         }
 
-        #[test]
-        fn readme_test() {
-            assert_eq!(Some(3), root(13, 33_554_431));
-            assert_eq!(Some(5560), root(2, 30_913_600));
+        mod root_actual {
+            use super::super::root_actual;
+
+            #[test]
+            fn expected_escape_test() {
+                let mut bcode = 0;
+
+                _ = root_actual(4, 256, &mut bcode, &mut 0, &mut 0, &mut 0);
+                assert_eq!(2, bcode);
+
+                _ = root_actual(4, 257, &mut bcode, &mut 0, &mut 0, &mut 0);
+                assert_eq!(1, bcode);
+            }
+
+            #[test]
+            fn degree_one_test() {
+                let mut bdp_out = u32::MAX;
+                let mut nth_less_out = u32::MAX;
+                let mut dbdlp_out = u32::MAX;
+
+                _ = root_actual(
+                    1, 0, &mut 0, &mut bdp_out, &mut nth_less_out, &mut dbdlp_out,
+                );
+
+                assert_eq!(10, bdp_out);
+                assert_eq!(0, nth_less_out);
+                assert_eq!(1, dbdlp_out);
+            }
+
+            #[test]
+            fn computational_test() {
+                let mut bdp_out = u32::MAX;
+                let mut nth_less_out = u32::MAX;
+                let mut dbdlp_out = u32::MAX;
+
+                _ = root_actual(
+                    9, 0, &mut 0, &mut bdp_out, &mut nth_less_out, &mut dbdlp_out,
+                );
+
+                assert_eq!(1_000_000_000, bdp_out);
+                assert_eq!(8, nth_less_out);
+                assert_eq!(900_000_000, dbdlp_out);
+            }
         }
     }
 }
@@ -253,13 +339,13 @@ mod step {
         degree: u32,      // n
         degree_less: u32, // n -1
         dbdlp: u32,       // nBⁿ⁻¹
-        #[cfg(test)] wrax_out: *mut u32,
-        #[cfg(test)] rax_pow_less_out: *mut u32,
-        #[cfg(test)] sub_out: *mut u32,
-        #[cfg(test)] lim_out: *mut u32,
-        #[cfg(test)] div_out: *mut u32,
-        #[cfg(test)] beta_out: *mut u32,
-        #[cfg(test)] guess_out: *mut Option<u32>,
+        #[cfg(test)] wrax_out: &mut u32,
+        #[cfg(test)] rax_pow_less_out: &mut u32,
+        #[cfg(test)] sub_out: &mut u32,
+        #[cfg(test)] lim_out: &mut u32,
+        #[cfg(test)] div_out: &mut u32,
+        #[cfg(test)] beta_out: &mut u32,
+        #[cfg(test)] guess_out: &mut Option<u32>,
     ) -> (u32, u32) {
         // By, widen rax
         let wrax = rax * super::BASE;
@@ -288,7 +374,7 @@ mod step {
                 let div = dbdlp * rax_pow_less;
 
                 #[cfg(test)]
-                unsafe {
+                {
                     *div_out = div;
                 }
 
@@ -304,7 +390,7 @@ mod step {
         };
 
         #[cfg(test)]
-        unsafe {
+        {
             *wrax_out = wrax;
             *rax_pow_less_out = rax_pow_less;
             *sub_out = sub;
