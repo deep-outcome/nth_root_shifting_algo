@@ -198,6 +198,12 @@ pub mod nth_root {
                 );
             }
         }
+
+        #[test]
+        fn readme_test() {
+            assert_eq!(Some(3), root(13, 33_554_431));
+            assert_eq!(Some(5560), root(2, 30_913_600));
+        }
     }
 }
 
