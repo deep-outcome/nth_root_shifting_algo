@@ -685,6 +685,108 @@ mod step {
                 assert_eq!(Some(2), guess_out);
             }
         }
+
+        mod incr {
+            use super::super::incr;
+
+            #[test]
+            fn guess_too_much_test() {
+                let wrax = 20;
+                let beta = 3;
+                let degree = 3;
+                let sub = 66;
+                let lim = 12100;
+                let guess = Some(3);
+                let rax = u32::MAX;
+                let max = u32::MAX;
+
+                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+
+                assert_eq!(None, incr_res);
+            }
+
+            #[test]
+            // essentially, same as beta_is_beta_test
+            fn guess_is_beta_test1() {
+                let wrax = 20;
+                let beta = 3;
+                let degree = 3;
+                let sub = 67;
+                let lim = 12100;
+                let guess = Some(3);
+                let rax = u32::MAX;
+                let max = u32::MAX;
+
+                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+
+                assert_eq!(Some((23, 12100)), incr_res);
+            }
+
+            #[test]
+            fn guess_is_beta_test2() {
+                let wrax = 20;
+                let beta = 3;
+                let degree = 3;
+                let sub = 68;
+                let lim = 12100;
+                let guess = Some(3);
+                let rax = u32::MAX;
+                let max = u32::MAX;
+
+                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+
+                assert_eq!(Some((23, 12099)), incr_res);
+            }
+
+            #[test]
+            fn beta_too_much_test() {
+                let wrax = 20;
+                let beta = 1;
+                let degree = 3;
+                let sub = 60;
+                let lim = 9200;
+                let guess = None;
+                let rax = u32::MAX - 1;
+                let max = u32::MAX - 2;
+
+                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+
+                assert_eq!(Some((u32::MAX - 1, u32::MAX - 2)), incr_res);
+            }
+
+            #[test]
+            // essentially, same as guess_is_beta_test
+            fn beta_is_beta_test1() {
+                let wrax = 20;
+                let beta = 3;
+                let degree = 3;
+                let sub = 67;
+                let lim = 12100;
+                let guess = None;
+                let rax = u32::MAX;
+                let max = u32::MAX;
+
+                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+
+                assert_eq!(Some((23, 12100)), incr_res);
+            }
+
+            #[test]
+            fn beta_is_beta_test2() {
+                let wrax = 20;
+                let beta = 3;
+                let degree = 3;
+                let sub = 68;
+                let lim = 12100;
+                let guess = None;
+                let rax = u32::MAX;
+                let max = u32::MAX;
+
+                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+
+                assert_eq!(Some((23, 12099)), incr_res);
+            }
+        }
     }
 }
 
