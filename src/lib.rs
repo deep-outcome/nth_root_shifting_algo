@@ -328,6 +328,10 @@ mod step {
             &mut 0,
             #[cfg(test)]
             &mut None,
+            #[cfg(test)]
+            &mut false,
+            #[cfg(test)]
+            &mut false,
         )
     }
 
@@ -346,6 +350,8 @@ mod step {
         #[cfg(test)] div_out: &mut u32,
         #[cfg(test)] beta_out: &mut u32,
         #[cfg(test)] guess_out: &mut Option<u32>,
+        #[cfg(test)] incr_out: &mut bool,
+        #[cfg(test)] decr_out: &mut bool,
     ) -> (u32, u32) {
         // By, widen rax
         let wrax = rax * super::BASE;
@@ -402,8 +408,18 @@ mod step {
         let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
 
         if let Some((orax, omax)) = incr_res {
+            #[cfg(test)]
+            {
+                *incr_out = true;
+            }
+
             (rax, max) = (orax, omax);
         } else {
+            #[cfg(test)]
+            {
+                *decr_out = true;
+            }
+
             (rax, max) = decr(wrax, beta, degree, sub, lim);
         }
 
@@ -503,21 +519,28 @@ mod step {
                 let mut beta_out = u32::MAX;
                 let mut guess_out = Some(u32::MAX);
 
-                _ = next_actual(
+                let res = next_actual(
                     rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
                     &mut rax_pow_less_out, &mut sub_out, &mut lim_out, &mut div_out, &mut beta_out,
-                    &mut guess_out,
+                    &mut guess_out, &mut false, &mut false,
                 );
+
+                let sub = 27_000;
+                let lim = 15_133;
+                let div = 2700;
 
                 assert_eq!(30, wrax_out);
                 assert_eq!(9, rax_pow_less_out);
-                assert_eq!(27_000, sub_out);
-                assert_eq!(15_133, lim_out);
-                assert_eq!(2_700, div_out);
+                assert_eq!(sub, sub_out);
+                assert_eq!(lim, lim_out);
+                assert_eq!(div, div_out);
 
-                let beta = 15_133 / 2_700;
+                let beta = lim / div;
                 assert_eq!(beta, beta_out);
                 assert_eq!(Some(beta), guess_out);
+
+                let rem = lim - (34u32.pow(degree) - sub);
+                assert_eq!((34, rem), res)
             }
 
             #[test]
@@ -541,7 +564,7 @@ mod step {
                 _ = next_actual(
                     rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
                     &mut rax_pow_less_out, &mut sub_out, &mut lim_out, &mut div_out, &mut beta_out,
-                    &mut guess_out,
+                    &mut guess_out, &mut false, &mut false,
                 );
 
                 assert_eq!(0, wrax_out);
@@ -574,7 +597,7 @@ mod step {
                 _ = next_actual(
                     rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
                     &mut rax_pow_less_out, &mut sub_out, &mut lim_out, &mut div_out, &mut beta_out,
-                    &mut guess_out,
+                    &mut guess_out, &mut false, &mut false,
                 );
 
                 assert_eq!(20, wrax_out);
@@ -607,7 +630,7 @@ mod step {
                 _ = next_actual(
                     rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
                     &mut rax_pow_less_out, &mut sub_out, &mut lim_out, &mut div_out, &mut beta_out,
-                    &mut guess_out,
+                    &mut guess_out, &mut false, &mut false,
                 );
 
                 assert_eq!(20, wrax_out);
@@ -640,7 +663,7 @@ mod step {
                 _ = next_actual(
                     rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
                     &mut rax_pow_less_out, &mut sub_out, &mut lim_out, &mut div_out, &mut beta_out,
-                    &mut guess_out,
+                    &mut guess_out, &mut false, &mut false,
                 );
 
                 assert_eq!(20, wrax_out);
@@ -673,7 +696,7 @@ mod step {
                 _ = next_actual(
                     rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
                     &mut rax_pow_less_out, &mut sub_out, &mut lim_out, &mut div_out, &mut beta_out,
-                    &mut guess_out,
+                    &mut guess_out, &mut false, &mut false,
                 );
 
                 assert_eq!(20, wrax_out);
@@ -683,6 +706,50 @@ mod step {
                 assert_eq!(1200, div_out);
                 assert_eq!(2, beta_out);
                 assert_eq!(Some(2), guess_out);
+            }
+
+            #[test]
+            fn incr_test() {
+                let rax = 3;
+                let rem = 4;
+                let bdp = 1000;
+                let alpha = 133;
+                let degree = 3;
+                let degree_less = 2;
+                let dbdlp = 300;
+
+                let mut incr_out = false;
+                let mut decr_out = false;
+
+                _ = next_actual(
+                    rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut 0, &mut 0, &mut 0,
+                    &mut 0, &mut 0, &mut 0, &mut None, &mut incr_out, &mut decr_out,
+                );
+
+                assert_eq!(true, incr_out);
+                assert_eq!(false, decr_out);
+            }
+
+            #[test]
+            fn decr_test() {
+                let rax = 3;
+                let rem = 15;
+                let bdp = 1000;
+                let alpha = 133;
+                let degree = 3;
+                let degree_less = 2;
+                let dbdlp = 300;
+
+                let mut incr_out = false;
+                let mut decr_out = false;
+
+                _ = next_actual(
+                    rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut 0, &mut 0, &mut 0,
+                    &mut 0, &mut 0, &mut 0, &mut None, &mut incr_out, &mut decr_out,
+                );
+
+                assert_eq!(false, incr_out);
+                assert_eq!(true, decr_out);
             }
         }
 
