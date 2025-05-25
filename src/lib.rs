@@ -854,6 +854,46 @@ mod step {
                 assert_eq!(Some((23, 12099)), incr_res);
             }
         }
+
+        mod decr {
+            use super::super::decr;
+
+            #[test]
+            fn max_equal_lim_test() {
+                let wrax = 20;
+                let beta = 5;
+                let degree = 4;
+                let sub = 776;
+                let lim = 331_000;
+
+                let res = decr(wrax, beta, degree, sub, lim);
+                assert_eq!((24, 331_000), res);
+            }
+
+            #[test]
+            fn max_less_lim_test() {
+                let wrax = 20;
+                let beta = 5;
+                let degree = 4;
+                let sub = 777;
+                let lim = 331_000;
+
+                let res = decr(wrax, beta, degree, sub, lim);
+                assert_eq!((24, 330_999), res);
+            }
+
+            #[test]
+            fn subtracting_test() {
+                let wrax = 20;
+                let beta = 6;
+                let degree = 4;
+                let sub = 776;
+                let lim = 331_000;
+
+                let res = decr(wrax, beta, degree, sub, lim);
+                assert_eq!((24, 331_000), res);
+            }
+        }
     }
 }
 
