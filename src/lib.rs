@@ -19,7 +19,7 @@ pub mod nth_root {
     /// `nth` – radix degree
     /// `rad` – radicand
     // n, x
-    pub fn root(nth: u8, rad: u32) -> Option<u32> {
+    pub const fn root(nth: u8, rad: u32) -> Option<u32> {
         root_actual(
             nth as u32,
             rad,
@@ -34,7 +34,7 @@ pub mod nth_root {
         )
     }
 
-    pub fn root_actual(
+    pub const fn root_actual(
         nth: u32,
         rad: u32,
         #[cfg(test)] bcode: &mut u32,
@@ -366,7 +366,7 @@ mod step {
         let mut max = 0;
 
         // let make initial guess, if possible
-        let (mut guess, mut beta) = {
+        let (guess, beta) = {
             let mut g = 0;
 
             if rax_pow_less > 0 {
@@ -399,9 +399,31 @@ mod step {
             *guess_out = guess;
         }
 
+        let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+
+        if let Some((orax, omax)) = incr_res {
+            (rax, max) = (orax, omax);
+        } else {
+            (rax, max) = decr(wrax, beta, degree, sub, lim);
+        }
+
+        // r' =Bⁿr +α -((By +β)ⁿ -Bⁿyⁿ)
+        (rax, lim - max)
+    }
+
+    const fn incr(
+        wrax: u32,
+        mut beta: u32,
+        degree: u32,
+        sub: u32,
+        lim: u32,
+        guess: Option<u32>,
+        mut rax: u32,
+        mut max: u32,
+    ) -> Option<(u32, u32)> {
         // seeking largest beta that
         // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
-        'incr: loop {
+        loop {
             // o stands for operative
 
             // y' =By +β
@@ -415,13 +437,11 @@ mod step {
             if omax > lim {
                 if let Some(g) = guess {
                     if g == beta {
-                        break 'incr;
+                        return None;
                     }
-
-                    guess = None;
                 }
 
-                break 'incr;
+                return Some((rax, max));
             }
 
             rax = orax;
@@ -429,24 +449,18 @@ mod step {
 
             // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
             if omax == lim {
-                if guess.is_some() {
-                    guess = None;
-                }
-                break 'incr;
+                return Some((rax, max));
             }
 
             beta += 1;
         }
+    }
 
-        if guess.is_none() {
-            // r' =Bⁿr +α -((By +β)ⁿ -Bⁿyⁿ)
-            return (rax, lim - max);
-        }
-
+    const fn decr(wrax: u32, mut beta: u32, degree: u32, sub: u32, lim: u32) -> (u32, u32) {
         // seeking largest beta that
         // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
         beta -= 1;
-        'decr: loop {
+        loop {
             // o stands for operative
 
             // y' =By +β
@@ -458,17 +472,11 @@ mod step {
 
             // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
             if omax <= lim {
-                rax = orax;
-                max = omax;
-
-                break 'decr;
+                return (orax, omax);
             }
 
             beta -= 1;
         }
-
-        // r' =Bⁿr +α -((By +β)ⁿ -Bⁿyⁿ)
-        (rax, lim - max)
     }
 
     #[cfg(test)]
@@ -692,7 +700,7 @@ mod alpha_gen {
     }
 
     impl AlphaGenerator {
-        pub fn new(num: u32, siz: u32) -> Self {
+        pub const fn new(num: u32, siz: u32) -> Self {
             if siz == 0 {
                 panic!("0ᵗʰ root is strictly unsupported computation.");
                 // that would mean seeking such root that is result of zero-time
@@ -718,7 +726,7 @@ mod alpha_gen {
             Self { num, siz, plc }
         }
 
-        pub fn next(&mut self) -> u32 {
+        pub const fn next(&mut self) -> u32 {
             let num = self.num;
 
             if num == 0 {
