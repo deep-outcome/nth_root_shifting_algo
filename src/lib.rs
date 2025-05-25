@@ -7,7 +7,6 @@
 // r  — remainder
 // α  — next n places of radicand
 // β  — root next number
-// x' — new x for next iteration
 // y' — new y for next iteration
 // r' — new r for next iteration
 
@@ -17,6 +16,7 @@ const BASE: u32 = 10;
 
 /// `nth` – radix degree
 /// `rad` – radicand
+// n, x
 pub fn root(nth: u8, rad: u32) -> Option<u32> {
     if nth == 0 {
         return None;
@@ -25,25 +25,32 @@ pub fn root(nth: u8, rad: u32) -> Option<u32> {
     let nth = nth as u32;
 
     // root/radix
+    // y
     let mut rax = 0;
     // remainder
+    // r
     let mut rem = 0;
 
     // decadic base powered by degree
     // base degree power
+    // Bⁿ
     let bdp = BASE.pow(nth);
 
+    // n -1
     let nth_less = nth - 1;
 
     // degree base degree less power
+    // nBⁿ⁻¹
     let dbdlp = nth * BASE.pow(nth_less);
 
     let mut agen = AlphaGenerator::new(rad, nth);
 
     // integer root, otherwise some kind (degree) of precision must be used
     loop {
+        // α
         let alpha = agen.next();
         // operatives
+        // y', r'
         let (orax, orem) = step::next(rax, rem, bdp, alpha, nth, nth_less, dbdlp);
 
         let orax_pow = orax.pow(nth);
@@ -76,6 +83,15 @@ mod tests_of_units {
     #[test]
     fn zero_root_test() {
         assert_eq!(None, root(0, u32::MAX));
+    }
+
+    #[test]
+    fn first_root() {
+        let vals = [0, 1, 2, 3, 10, 100, 999, 1_000_000, 9_999_999];
+
+        for &v in vals.iter() {
+            assert_eq!(Some(v), root(1, v), "val: {v}");
+        }
     }
 
     #[test]
@@ -187,17 +203,59 @@ mod step {
     // β is largest number complying formula
     // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
     pub const fn next(
-        mut rax: u32,
-        rem: u32,
-        bdp: u32,
-        alpha: u32,
-        degree: u32,
-        degree_less: u32,
-        dbdlp: u32,
+        rax: u32,         // y
+        rem: u32,         // r
+        bdp: u32,         // Bⁿ
+        alpha: u32,       // α
+        degree: u32,      // n
+        degree_less: u32, // n -1
+        dbdlp: u32,       // nBⁿ⁻¹
+    ) -> (u32, u32) {
+        next_actual(
+            rax,
+            rem,
+            bdp,
+            alpha,
+            degree,
+            degree_less,
+            dbdlp,
+            #[cfg(test)]
+            &mut 0,
+            #[cfg(test)]
+            &mut 0,
+            #[cfg(test)]
+            &mut 0,
+            #[cfg(test)]
+            &mut 0,
+            #[cfg(test)]
+            &mut 0,
+            #[cfg(test)]
+            &mut 0,
+            #[cfg(test)]
+            &mut None,
+        )
+    }
+
+    const fn next_actual(
+        mut rax: u32,     // y
+        rem: u32,         // r
+        bdp: u32,         // Bⁿ
+        alpha: u32,       // α
+        degree: u32,      // n
+        degree_less: u32, // n -1
+        dbdlp: u32,       // nBⁿ⁻¹
+        #[cfg(test)] wrax_out: *mut u32,
+        #[cfg(test)] rax_pow_less_out: *mut u32,
+        #[cfg(test)] sub_out: *mut u32,
+        #[cfg(test)] lim_out: *mut u32,
+        #[cfg(test)] div_out: *mut u32,
+        #[cfg(test)] beta_out: *mut u32,
+        #[cfg(test)] guess_out: *mut Option<u32>,
     ) -> (u32, u32) {
         // By, widen rax
         let wrax = rax * super::BASE;
 
+        // yⁿ⁻¹
         let rax_pow_less = rax.pow(degree_less);
 
         // Bⁿyⁿ, subtrahend
@@ -219,6 +277,11 @@ mod step {
             if rax_pow_less > 0 {
                 let div = dbdlp * rax_pow_less;
 
+                #[cfg(test)]
+                unsafe {
+                    *div_out = div;
+                }
+
                 // Bⁿr +α ÷(nBⁿ⁻¹ ·yⁿ⁻¹)
                 g = lim / div;
             }
@@ -229,6 +292,16 @@ mod step {
                 (None, 1)
             }
         };
+
+        #[cfg(test)]
+        unsafe {
+            *wrax_out = wrax;
+            *rax_pow_less_out = rax_pow_less;
+            *sub_out = sub;
+            *lim_out = lim;
+            *beta_out = beta;
+            *guess_out = guess;
+        }
 
         // seeking largest beta that
         // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
@@ -300,6 +373,49 @@ mod step {
 
         // r' =Bⁿr +α -((By +β)ⁿ -Bⁿyⁿ)
         (rax, lim - max)
+    }
+
+    #[cfg(test)]
+    mod tets_of_units {
+
+        mod next_actual {
+            use crate::step::next_actual;
+
+            #[test]
+            fn basic_test() {
+                let rax = 3;
+                let rem = 15;
+                let bdp = 1000;
+                let alpha = 133;
+                let degree = 3;
+                let degree_less = 2;
+                let dbdlp = 300;
+
+                let mut wrax_out = 0;
+                let mut rax_pow_less_out = 0;
+                let mut sub_out = 0;
+                let mut lim_out = 0;
+                let mut div_out = 0;
+                let mut beta_out = 0;
+                let mut guess_out = None;
+
+                _ = next_actual(
+                    rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
+                    &mut rax_pow_less_out, &mut sub_out, &mut lim_out, &mut div_out, &mut beta_out,
+                    &mut guess_out,
+                );
+
+                assert_eq!(30, wrax_out);
+                assert_eq!(9, rax_pow_less_out);
+                assert_eq!(27_000, sub_out);
+                assert_eq!(15_133, lim_out);
+                assert_eq!(2_700, div_out);
+
+                let beta = 15_133 / 2_700;
+                assert_eq!(beta, beta_out);
+                assert_eq!(Some(beta), guess_out);
+            }
+        }
     }
 }
 
