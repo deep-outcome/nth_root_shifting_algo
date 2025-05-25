@@ -86,7 +86,7 @@ mod tests_of_units {
     }
 
     #[test]
-    fn first_root() {
+    fn first_root_test() {
         let vals = [0, 1, 2, 3, 10, 100, 999, 1_000_000, 9_999_999];
 
         for &v in vals.iter() {
@@ -275,6 +275,7 @@ mod step {
             let mut g = 0;
 
             if rax_pow_less > 0 {
+                // nBⁿ⁻¹ ·yⁿ⁻¹
                 let div = dbdlp * rax_pow_less;
 
                 #[cfg(test)]
@@ -391,13 +392,13 @@ mod step {
                 let degree_less = 2;
                 let dbdlp = 300;
 
-                let mut wrax_out = 0;
-                let mut rax_pow_less_out = 0;
-                let mut sub_out = 0;
-                let mut lim_out = 0;
-                let mut div_out = 0;
-                let mut beta_out = 0;
-                let mut guess_out = None;
+                let mut wrax_out = u32::MAX;
+                let mut rax_pow_less_out = u32::MAX;
+                let mut sub_out = u32::MAX;
+                let mut lim_out = u32::MAX;
+                let mut div_out = u32::MAX;
+                let mut beta_out = u32::MAX;
+                let mut guess_out = Some(u32::MAX);
 
                 _ = next_actual(
                     rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
@@ -414,6 +415,105 @@ mod step {
                 let beta = 15_133 / 2_700;
                 assert_eq!(beta, beta_out);
                 assert_eq!(Some(beta), guess_out);
+            }
+
+            #[test]
+            fn rax_zero_test() {
+                let rax = 0;
+                let rem = 0;
+                let bdp = 1000;
+                let alpha = 133;
+                let degree = 3;
+                let degree_less = 2;
+                let dbdlp = 300;
+
+                let mut wrax_out = u32::MAX;
+                let mut rax_pow_less_out = u32::MAX;
+                let mut sub_out = u32::MAX;
+                let mut lim_out = u32::MAX;
+                let mut div_out = u32::MAX;
+                let mut beta_out = u32::MAX;
+                let mut guess_out = Some(u32::MAX);
+
+                _ = next_actual(
+                    rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
+                    &mut rax_pow_less_out, &mut sub_out, &mut lim_out, &mut div_out, &mut beta_out,
+                    &mut guess_out,
+                );
+
+                assert_eq!(0, wrax_out);
+                assert_eq!(0, rax_pow_less_out);
+                assert_eq!(0, sub_out);
+                assert_eq!(133, lim_out);
+                assert_eq!(u32::MAX, div_out);
+                assert_eq!(1, beta_out);
+                assert_eq!(None, guess_out);
+            }
+
+            #[test]
+            fn degree_one_test() {
+                let rax = 2;
+                let rem = 3;
+                let bdp = 10;
+                let alpha = 222;
+                let degree = 1;
+                let degree_less = 0;
+                let dbdlp = 1;
+
+                let mut wrax_out = u32::MAX;
+                let mut rax_pow_less_out = u32::MAX;
+                let mut sub_out = u32::MAX;
+                let mut lim_out = u32::MAX;
+                let mut div_out = u32::MAX;
+                let mut beta_out = u32::MAX;
+                let mut guess_out = Some(u32::MAX);
+
+                _ = next_actual(
+                    rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
+                    &mut rax_pow_less_out, &mut sub_out, &mut lim_out, &mut div_out, &mut beta_out,
+                    &mut guess_out,
+                );
+
+                assert_eq!(20, wrax_out);
+                assert_eq!(1, rax_pow_less_out);
+                assert_eq!(20, sub_out);
+                assert_eq!(252, lim_out);
+                assert_eq!(1, div_out);
+                assert_eq!(252, beta_out);
+                assert_eq!(Some(252), guess_out);
+            }
+
+            #[test]
+            fn g_zero_test() {
+                let rax = 2;
+                let rem = 1;
+                let bdp = 1000;
+                let alpha = 199;
+                let degree = 3;
+                let degree_less = 2;
+                let dbdlp = 300;
+
+                let mut wrax_out = u32::MAX;
+                let mut rax_pow_less_out = u32::MAX;
+                let mut sub_out = u32::MAX;
+                let mut lim_out = u32::MAX;
+                let mut div_out = u32::MAX;
+                let mut beta_out = u32::MAX;
+                let mut guess_out = Some(u32::MAX);
+
+                _ = next_actual(
+                    rax, rem, bdp, alpha, degree, degree_less, dbdlp, &mut wrax_out,
+                    &mut rax_pow_less_out, &mut sub_out, &mut lim_out, &mut div_out, &mut beta_out,
+                    &mut guess_out,
+                );
+
+                assert_eq!(20, wrax_out);
+                assert_eq!(4, rax_pow_less_out);
+                assert_eq!(8000, sub_out);
+                assert_eq!(1199, lim_out);
+                assert_eq!(1200, div_out);
+                assert_eq!(1, beta_out);
+                assert_eq!(None, guess_out);
             }
         }
     }
