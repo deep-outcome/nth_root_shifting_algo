@@ -959,7 +959,7 @@ mod alpha_gen {
         use super::AlphaGenerator;
 
         #[test]
-        fn basic_test() {
+        fn lesser_root_test() {
             let vals = [
                 (1_234_567, 3, [1, 234, 567, 0, 0]),
                 (11_2222_3333, 4, [11, 2222, 3333, 0, 0]),
@@ -995,21 +995,26 @@ mod alpha_gen {
 
         #[test]
         fn divisible_by_root_test() {
-            let number = 1234;
-            let root = 2;
+            #[rustfmt::skip]
+            let vals = [
+                (222_333_444, 3, [222, 333, 444, 0]),
+                (1234, 4, [1234, 0, 0, 0])
+            ];
 
-            let mut generator = AlphaGenerator::new(number, root);
+            for v in vals {
+                let mut generator = AlphaGenerator::new(v.0, v.1);
 
-            for n in [12, 34, 0, 0] {
-                let next = generator.next();
-                assert_eq!(n, next);
+                for n in v.2 {
+                    let next = generator.next();
+                    assert_eq!(n, next);
+                }
             }
         }
 
         #[test]
         fn zero_num_test() {
             let number = 0;
-            let root = 1;
+            let root = 999;
 
             let mut generator = AlphaGenerator::new(number, root);
 
