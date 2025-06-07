@@ -914,7 +914,7 @@ mod alpha_gen {
                 panic!("0ᵗʰ root is strictly unsupported computation.");
                 // that would mean seeking such root that is result of zero-time
                 // applied division, that means root is argument but this would
-                // be possible only for 1
+                // be possible only for 0 and 1
             }
 
             let plc = if num == 0 {
