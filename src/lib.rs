@@ -472,16 +472,16 @@ mod step {
         }
     }
 
-    const fn decr(wrax: u32, mut beta: u32, degree: u32, sub: u32, lim: u32) -> (u32, u32) {
+    const fn decr(wrax: u32, beta: u32, degree: u32, sub: u32, lim: u32) -> (u32, u32) {
+        // o stands for operative
+        // y' =By +β
+        let mut orax = wrax + beta;
+
         // seeking largest beta that
         // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
         loop {
-            beta -= 1;
+            orax = orax - 1;
 
-            // o stands for operative
-
-            // y' =By +β
-            let orax = wrax + beta;
             // (By +β)ⁿ
             let orax_deg_pow = orax.pow(degree);
             // (By +β)ⁿ -Bⁿyⁿ
