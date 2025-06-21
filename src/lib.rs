@@ -475,8 +475,9 @@ mod step {
     const fn decr(wrax: u32, mut beta: u32, degree: u32, sub: u32, lim: u32) -> (u32, u32) {
         // seeking largest beta that
         // (By +β)ⁿ -Bⁿyⁿ ≤ Bⁿr +α
-        beta -= 1;
         loop {
+            beta -= 1;
+
             // o stands for operative
 
             // y' =By +β
@@ -490,8 +491,6 @@ mod step {
             if omax <= lim {
                 return (orax, omax);
             }
-
-            beta -= 1;
         }
     }
 
