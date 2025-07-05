@@ -384,7 +384,7 @@ mod step {
                     *div_out = div;
                 }
 
-                // Bⁿr +α ÷(nBⁿ⁻¹ ·yⁿ⁻¹)
+                // (Bⁿr +α) ÷(nBⁿ⁻¹ ·yⁿ⁻¹)
                 g = lim / div;
             }
 
@@ -423,7 +423,7 @@ mod step {
             (rax, max) = decr(wrax, beta, degree, sub, lim);
         }
 
-        // r' =Bⁿr +α -((By +β)ⁿ -Bⁿyⁿ)
+        // r' =(Bⁿr +α) -((By +β)ⁿ -Bⁿyⁿ)
         (rax, lim - max)
     }
 
