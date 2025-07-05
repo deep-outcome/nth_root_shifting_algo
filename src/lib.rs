@@ -405,9 +405,9 @@ mod step {
             *guess_out = guess;
         }
 
-        let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+        let res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
 
-        if let Some((orax, omax)) = incr_res {
+        if let Some((orax, omax)) = res {
             #[cfg(test)]
             {
                 *incr_out = true;
@@ -766,9 +766,9 @@ mod step {
                 let rax = u32::MAX;
                 let max = u32::MAX;
 
-                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+                let res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
 
-                assert_eq!(None, incr_res);
+                assert_eq!(None, res);
             }
 
             #[test]
@@ -783,9 +783,9 @@ mod step {
                 let rax = u32::MAX;
                 let max = u32::MAX;
 
-                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+                let res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
 
-                assert_eq!(Some((23, 12100)), incr_res);
+                assert_eq!(Some((23, 12100)), res);
             }
 
             #[test]
@@ -799,9 +799,9 @@ mod step {
                 let rax = u32::MAX;
                 let max = u32::MAX;
 
-                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+                let res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
 
-                assert_eq!(Some((23, 12099)), incr_res);
+                assert_eq!(Some((23, 12099)), res);
             }
 
             #[test]
@@ -815,9 +815,9 @@ mod step {
                 let rax = u32::MAX - 1;
                 let max = u32::MAX - 2;
 
-                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+                let res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
 
-                assert_eq!(Some((u32::MAX - 1, u32::MAX - 2)), incr_res);
+                assert_eq!(Some((u32::MAX - 1, u32::MAX - 2)), res);
             }
 
             #[test]
@@ -832,9 +832,9 @@ mod step {
                 let rax = u32::MAX;
                 let max = u32::MAX;
 
-                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+                let res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
 
-                assert_eq!(Some((23, 12100)), incr_res);
+                assert_eq!(Some((23, 12100)), res);
             }
 
             #[test]
@@ -848,9 +848,9 @@ mod step {
                 let rax = u32::MAX;
                 let max = u32::MAX;
 
-                let incr_res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
+                let res = incr(wrax, beta, degree, sub, lim, guess, rax, max);
 
-                assert_eq!(Some((23, 12099)), incr_res);
+                assert_eq!(Some((23, 12099)), res);
             }
         }
 
