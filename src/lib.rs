@@ -495,7 +495,7 @@ mod step {
     }
 
     #[cfg(test)]
-    mod tets_of_units {
+    mod tests_of_units {
 
         mod next_actual {
             use crate::step::next_actual;
